@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "773085841218",
+    "project_id": "gestor-academico-ff7f6",
+    "storage_bucket": "gestor-academico-ff7f6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:773085841218:android:17c9fe4d6ccb2973876adb",
+        "android_client_info": {
+          "package_name": "com.example.gestor_academico"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD6aQmYexUia-lqW54ecBt6JpVROcKQg-U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
