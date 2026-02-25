@@ -53,6 +53,7 @@ class DocenteHome extends StatelessWidget {
                   ],
                 ),
               );
+
               if (confirm == true) {
                 if (context.mounted) {
                   Provider.of<AuthService>(context, listen: false).signOut();
@@ -68,7 +69,6 @@ class DocenteHome extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Saludo
               const Text(
                 'Panel de Control',
                 style: TextStyle(
@@ -84,70 +84,74 @@ class DocenteHome extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              // Grid de módulos
               Expanded(
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  children: [
-                    _ModuleCard(
-                      icon: Icons.people_alt_rounded,
-                      title: 'Gestión\nAcadémica',
-                      subtitle: 'Alumnos, grupos\ny materias',
-                      color: const Color(0xFF1565C0),
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const PlaceholderScreen(
-                            title: 'Gestión Académica',
+                child: OrientationBuilder(
+                  builder: (context, orientation) {
+                    return GridView.count(
+                      crossAxisCount:
+                          orientation == Orientation.portrait ? 2 : 4,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      children: [
+                        _ModuleCard(
+                          icon: Icons.people_alt_rounded,
+                          title: 'Gestión\nAcadémica',
+                          subtitle: 'Alumnos, grupos\ny materias',
+                          color: const Color(0xFF1565C0),
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const PlaceholderScreen(
+                                title: 'Gestión Académica',
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                    _ModuleCard(
-                      icon: Icons.fact_check_rounded,
-                      title: 'Control de\nAsistencia',
-                      subtitle: 'QR y registro\nmanual',
-                      color: const Color(0xFF2E7D32),
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const PlaceholderScreen(
-                            title: 'Control de Asistencia',
+                        _ModuleCard(
+                          icon: Icons.fact_check_rounded,
+                          title: 'Control de\nAsistencia',
+                          subtitle: 'QR y registro\nmanual',
+                          color: const Color(0xFF2E7D32),
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const PlaceholderScreen(
+                                title: 'Control de Asistencia',
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                    _ModuleCard(
-                      icon: Icons.psychology_rounded,
-                      title: 'Evaluación\ncon IA',
-                      subtitle: 'Calificar prácticas\nautomáticamente',
-                      color: const Color(0xFF6A1B9A),
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const PlaceholderScreen(
-                            title: 'Evaluación con IA',
+                        _ModuleCard(
+                          icon: Icons.psychology_rounded,
+                          title: 'Evaluación\ncon IA',
+                          subtitle: 'Calificar prácticas\nautomáticamente',
+                          color: const Color(0xFF6A1B9A),
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const PlaceholderScreen(
+                                title: 'Evaluación con IA',
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                    _ModuleCard(
-                      icon: Icons.bar_chart_rounded,
-                      title: 'Reportes',
-                      subtitle: 'Asistencia y\ncalificaciones',
-                      color: const Color(0xFFE65100),
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const PlaceholderScreen(
-                            title: 'Reportes',
+                        _ModuleCard(
+                          icon: Icons.bar_chart_rounded,
+                          title: 'Reportes',
+                          subtitle: 'Asistencia y\ncalificaciones',
+                          color: const Color(0xFFE65100),
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const PlaceholderScreen(
+                                title: 'Reportes',
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                  ],
+                      ],
+                    );
+                  },
                 ),
               ),
             ],
@@ -238,6 +242,7 @@ class _ModuleCard extends StatelessWidget {
 // Pantalla temporal para módulos que aún no están desarrollados
 class PlaceholderScreen extends StatelessWidget {
   final String title;
+
   const PlaceholderScreen({super.key, required this.title});
 
   @override
@@ -257,8 +262,8 @@ class PlaceholderScreen extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               title,
-              style: const TextStyle(
-                  fontSize: 20, fontWeight: FontWeight.bold),
+              style:
+                  const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             const Text(
