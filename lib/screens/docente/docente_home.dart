@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
+import 'gestion/semestres_screen.dart';
 
 class DocenteHome extends StatelessWidget {
   const DocenteHome({super.key});
@@ -101,8 +102,7 @@ class DocenteHome extends StatelessWidget {
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => const PlaceholderScreen(
-                                title: 'Gestión Académica',
+                              builder: (_) => const SemestresScreen(
                               ),
                             ),
                           ),
