@@ -11,6 +11,12 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.8
 
+  # Selector de archivos
+  file_picker: ^8.1.2
+
+  # Lectura de CSV
+  csv: ^6.0.0
+
   # Firebase
   firebase_core: ^3.6.0
   firebase_auth: ^5.3.1

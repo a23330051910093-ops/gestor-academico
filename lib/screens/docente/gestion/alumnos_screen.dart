@@ -5,6 +5,7 @@ import '../../../services/gestion_service.dart';
 import '../../../models/materia_model.dart';
 import '../../../models/grupo_model.dart';
 import '../../../models/alumno_model.dart';
+import 'importar_csv_screen.dart';
 
 class AlumnosScreen extends StatelessWidget {
   final Materia materia;
@@ -50,7 +51,7 @@ class AlumnosScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 8),
                   Text(
-                    'Toca el botón + para agregar uno',
+                    'Usa los botones para agregar o importar',
                     style: TextStyle(fontSize: 13, color: Colors.grey),
                   ),
                 ],
@@ -60,12 +61,11 @@ class AlumnosScreen extends StatelessWidget {
 
           return Column(
             children: [
-              // Contador de alumnos
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 10),
-                color: const Color(0xFF1565C0).withValues(alpha: 0.05),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                color: const Color(0xFF1565C0).withOpacity(0.05),
                 child: Text(
                   '${alumnos.length} alumno${alumnos.length != 1 ? 's' : ''} registrados',
                   style: const TextStyle(
@@ -91,13 +91,41 @@ class AlumnosScreen extends StatelessWidget {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _mostrarDialogoCrear(
-            context, authService.currentUser!.uid, gestionService),
-        backgroundColor: const Color(0xFF1565C0),
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.person_add),
-        label: const Text('Nuevo alumno'),
+
+      // 🔹 NUEVOS BOTONES
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            heroTag: 'importar',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ImportarCsvScreen(
+                  grupo: grupo,
+                  docenteId: authService.currentUser!.uid,
+                ),
+              ),
+            ),
+            backgroundColor: const Color(0xFF2E7D32),
+            foregroundColor: Colors.white,
+            tooltip: 'Importar desde CSV',
+            child: const Icon(Icons.upload_file_rounded),
+          ),
+          const SizedBox(height: 12),
+          FloatingActionButton.extended(
+            heroTag: 'agregar',
+            onPressed: () => _mostrarDialogoCrear(
+              context,
+              authService.currentUser!.uid,
+              gestionService,
+            ),
+            backgroundColor: const Color(0xFF1565C0),
+            foregroundColor: Colors.white,
+            icon: const Icon(Icons.person_add),
+            label: const Text('Nuevo alumno'),
+          ),
+        ],
       ),
     );
   }
@@ -168,7 +196,6 @@ class AlumnosScreen extends StatelessWidget {
               onPressed: isLoading
                   ? null
                   : () async {
-                      // Validación de campos vacíos
                       if (nombreController.text.isEmpty ||
                           matriculaController.text.isEmpty ||
                           correoController.text.isEmpty) {
@@ -183,7 +210,6 @@ class AlumnosScreen extends StatelessWidget {
 
                       setState(() => isLoading = true);
 
-                      // Verificar matrícula duplicada
                       final existe = await gestionService.existeMatricula(
                         matriculaController.text.trim(),
                         grupo.id,
@@ -248,12 +274,14 @@ class _AlumnoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         leading: CircleAvatar(
-          backgroundColor: const Color(0xFF1565C0).withValues(alpha: 0.1),
+          backgroundColor:
+              const Color(0xFF1565C0).withOpacity(0.1),
           child: Text(
             alumno.nombre.isNotEmpty
                 ? alumno.nombre[0].toUpperCase()
@@ -289,8 +317,8 @@ class _AlumnoCard extends StatelessWidget {
       builder: (_) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
           title: const Text('Eliminar alumno'),
-          content: Text(
-              '¿Eliminar a "${alumno.nombre}" de este grupo?'),
+          content:
+              Text('¿Eliminar a "${alumno.nombre}" de este grupo?'),
           actions: [
             TextButton(
               onPressed: isLoading ? null : () => Navigator.pop(context),
@@ -308,10 +336,13 @@ class _AlumnoCard extends StatelessWidget {
                   ? const SizedBox(
                       height: 16,
                       width: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      child:
+                          CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Eliminar',
-                      style: TextStyle(color: Colors.red)),
+                  : const Text(
+                      'Eliminar',
+                      style: TextStyle(color: Colors.red),
+                    ),
             ),
           ],
         ),

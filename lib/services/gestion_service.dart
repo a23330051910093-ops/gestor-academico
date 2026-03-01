@@ -103,4 +103,36 @@ class GestionService {
         .get();
     return query.docs.isNotEmpty;
   }
+
+  // Importa una lista de alumnos de golpe (para CSV)
+  Future<Map<String, int>> importarAlumnos(
+      List<Alumno> alumnos, String grupoId) async {
+    int importados = 0;
+    int duplicados = 0;
+
+    // Usamos un batch para escribir todos de una sola vez
+    // Esto es más rápido y seguro que escribir uno por uno
+    final batch = _db.batch();
+
+    for (final alumno in alumnos) {
+      // Verificar si ya existe esa matrícula en este grupo
+      final existe = await existeMatricula(alumno.matricula, grupoId);
+      if (existe) {
+        duplicados++;
+        continue; // Salta este alumno y sigue con el siguiente
+      }
+
+      final docRef = _db.collection('alumnos').doc();
+      batch.set(docRef, alumno.toFirestore());
+      importados++;
+    }
+
+    // Ejecuta todas las escrituras de una sola vez
+    await batch.commit();
+
+    return {
+      'importados': importados,
+      'duplicados': duplicados,
+    };
+  }
 }
