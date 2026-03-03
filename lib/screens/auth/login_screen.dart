@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
+import 'activar_cuenta_screen.dart';
+import 'activar_cuenta_padre_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -60,9 +62,9 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
-          keyboardDismissBehavior: 
+          keyboardDismissBehavior:
               ScrollViewKeyboardDismissBehavior.onDrag,
-          physics: 
+          physics:
               const BouncingScrollPhysics(),
           child: ConstrainedBox(
             constraints: BoxConstraints(
@@ -207,6 +209,45 @@ class _LoginScreenState extends State<LoginScreen> {
                                 style: TextStyle(
                                     fontSize: 16),
                               ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Botón activar cuenta alumno
+                    OutlinedButton.icon(
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ActivarCuentaScreen(),
+                        ),
+                      ),
+                      icon: const Icon(Icons.school_outlined),
+                      label: const Text('¿Eres alumno? Activa tu cuenta'),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 48),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Botón activar cuenta padre
+                    OutlinedButton.icon(
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ActivarCuentaPadreScreen(),
+                        ),
+                      ),
+                      icon: const Icon(Icons.family_restroom_outlined),
+                      label: const Text('¿Eres padre/tutor? Accede aquí'),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 48),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 40),

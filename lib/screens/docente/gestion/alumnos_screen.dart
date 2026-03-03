@@ -92,7 +92,6 @@ class AlumnosScreen extends StatelessWidget {
         },
       ),
 
-      // 🔹 NUEVOS BOTONES
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
@@ -130,11 +129,13 @@ class AlumnosScreen extends StatelessWidget {
     );
   }
 
+  // 🔹 MÉTODO ACTUALIZADO CON CORREO DEL TUTOR
   void _mostrarDialogoCrear(
       BuildContext context, String docenteId, GestionService gestionService) {
     final nombreController = TextEditingController();
     final matriculaController = TextEditingController();
     final correoController = TextEditingController();
+    final correoTutorController = TextEditingController();
     bool isLoading = false;
 
     showDialog(
@@ -177,8 +178,22 @@ class AlumnosScreen extends StatelessWidget {
                   enabled: !isLoading,
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
-                    labelText: 'Correo electrónico',
+                    labelText: 'Correo del alumno',
                     prefixIcon: const Icon(Icons.email_outlined),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: correoTutorController,
+                  enabled: !isLoading,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: InputDecoration(
+                    labelText: 'Correo del padre/tutor (opcional)',
+                    prefixIcon:
+                        const Icon(Icons.family_restroom_outlined),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -201,7 +216,8 @@ class AlumnosScreen extends StatelessWidget {
                           correoController.text.isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Completa todos los campos'),
+                            content:
+                                Text('Completa los campos obligatorios'),
                             backgroundColor: Colors.red,
                           ),
                         );
@@ -221,7 +237,7 @@ class AlumnosScreen extends StatelessWidget {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text(
-                                  'Ya existe un alumno con esa matrícula en este grupo'),
+                                  'Ya existe un alumno con esa matrícula'),
                               backgroundColor: Colors.red,
                             ),
                           );
@@ -233,8 +249,11 @@ class AlumnosScreen extends StatelessWidget {
                         Alumno(
                           id: '',
                           nombre: nombreController.text.trim(),
-                          matricula: matriculaController.text.trim(),
+                          matricula:
+                              matriculaController.text.trim(),
                           correo: correoController.text.trim(),
+                          correoTutor:
+                              correoTutorController.text.trim(),
                           docenteId: docenteId,
                           grupoIds: [grupo.id],
                         ),

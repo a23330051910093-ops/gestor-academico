@@ -113,15 +113,21 @@ class _ImportarCsvScreenState extends State<ImportarCsvScreen> {
           continue;
         }
 
+        final correoTutor = fila.length >= 4
+            ? fila[3].toString().trim()
+            : '';
+
         alumnosParseados.add(Alumno(
           id: '',
           nombre: nombre,
           matricula: matricula,
           correo: correo,
+          correoTutor: correoTutor,
           docenteId: widget.docenteId,
           grupoIds: [widget.grupo.id],
         ));
       }
+
 
       if (alumnosParseados.isEmpty) {
         setState(() {
