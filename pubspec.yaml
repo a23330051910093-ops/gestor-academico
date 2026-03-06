@@ -26,6 +26,9 @@ dependencies:
   # Navegación
   go_router: ^13.2.0
 
+  # Generar QR
+  qr_flutter: ^4.1.0
+
   # Estado
   provider: ^6.1.2
 

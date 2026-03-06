@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
 import 'gestion/semestres_screen.dart';
+import 'asistencia/asistencia_home.dart';
 
 class DocenteHome extends StatelessWidget {
   const DocenteHome({super.key});
@@ -115,8 +116,7 @@ class DocenteHome extends StatelessWidget {
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => const PlaceholderScreen(
-                                title: 'Control de Asistencia',
+                              builder: (_) => const AsistenciaHome(
                               ),
                             ),
                           ),
