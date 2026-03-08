@@ -136,6 +136,17 @@ class GestionService {
     };
   }
 
+  // Obtiene materias de un grupo como Future (no Stream)
+  Future<List<Materia>> getMateriasPorGrupo(String grupoId) async {
+    final snapshot = await _db
+        .collection('materias')
+        .where('grupoId', isEqualTo: grupoId)
+        .get();
+    return snapshot.docs
+        .map((doc) => Materia.fromFirestore(doc.data(), doc.id))
+        .toList();
+  }
+
   // Obtiene un alumno por su UID de Firebase Auth
   Future<Alumno?> getAlumnoPorUid(String uid) async {
     try {

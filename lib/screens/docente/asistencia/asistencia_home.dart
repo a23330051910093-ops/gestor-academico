@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../services/auth_service.dart';
 import '../../../services/gestion_service.dart';
+import '../../../services/asistencia_service.dart';
 import '../../../models/materia_model.dart';
 import '../../../models/grupo_model.dart';
 import '../../../models/semestre_model.dart';
+import '../../../models/asistencia_model.dart';
 import 'qr_screen.dart';
+import 'pendientes_screen.dart';
 
 class AsistenciaHome extends StatelessWidget {
   const AsistenciaHome({super.key});
@@ -14,6 +17,7 @@ class AsistenciaHome extends StatelessWidget {
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context, listen: false);
     final gestionService = GestionService();
+    final asistenciaService = AsistenciaService();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
@@ -21,6 +25,50 @@ class AsistenciaHome extends StatelessWidget {
         title: const Text('Control de Asistencia'),
         backgroundColor: const Color(0xFF1565C0),
         foregroundColor: Colors.white,
+        actions: [
+          StreamBuilder<List<Asistencia>>(
+            stream: asistenciaService
+                .getAsistenciasPendientes(authService.currentUser!.uid),
+            builder: (context, snapshot) {
+              final pendientes = snapshot.data?.length ?? 0;
+
+              return Stack(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.pending_actions_rounded),
+                    tooltip: 'Pendientes',
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const PendientesScreen(),
+                      ),
+                    ),
+                  ),
+                  if (pendientes > 0)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          '$pendientes',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+        ],
       ),
       body: StreamBuilder<List<Semestre>>(
         stream: gestionService.getSemestres(authService.currentUser!.uid),
@@ -72,8 +120,8 @@ class _SemestreExpansion extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ExpansionTile(
-        leading: const Icon(Icons.calendar_month_rounded,
-            color: Color(0xFF1565C0)),
+        leading:
+            const Icon(Icons.calendar_month_rounded, color: Color(0xFF1565C0)),
         title: Text(
           semestre.nombre,
           style: const TextStyle(fontWeight: FontWeight.bold),
@@ -120,8 +168,7 @@ class _GrupoExpansion extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(left: 16),
       child: ExpansionTile(
-        leading:
-            const Icon(Icons.group_rounded, color: Color(0xFF2E7D32)),
+        leading: const Icon(Icons.group_rounded, color: Color(0xFF2E7D32)),
         title: Text(grupo.nombre),
         children: [
           StreamBuilder<List<Materia>>(
@@ -143,7 +190,8 @@ class _GrupoExpansion extends StatelessWidget {
                           leading: const Icon(Icons.book_rounded,
                               color: Color(0xFF6A1B9A)),
                           title: Text(materia.nombre),
-                          subtitle: const Text('Toca para tomar asistencia'),
+                          subtitle:
+                              const Text('Toca para tomar asistencia'),
                           trailing: const Icon(Icons.chevron_right),
                           onTap: () => Navigator.push(
                             context,

@@ -15,25 +15,20 @@ class AsistenciaService {
     required String docenteId,
     int minutosQR = 10,
   }) async {
-    // Detectar módulo actual por horario
     final modulo = HorarioUtils.moduloActual();
 
-    // Si estamos fuera del horario de clases
     if (modulo == null) {
-      // En desarrollo permitimos crear QR fuera de horario para pruebas
-      // En producción aquí iría: return null;
+      // En desarrollo permitimos crear QR fuera de horario
     }
 
     final ahora = DateTime.now();
     final expiracionQR = ahora.add(Duration(minutes: minutosQR));
 
-    // Fin del módulo actual (o 50 minutos si estamos fuera de horario)
     final finModulo =
         HorarioUtils.finModuloActual() ?? ahora.add(const Duration(minutes: 50));
 
     final numeroModulo = modulo?.numero ?? 0;
 
-    // Buscar si ya existe una sesión activa para este módulo y materia
     final sesionExistente = await _db
         .collection('sesionesQR')
         .where('materiaId', isEqualTo: materiaId)
@@ -41,10 +36,9 @@ class AsistenciaService {
         .where('activo', isEqualTo: true)
         .get();
 
-    // Si ya existe una sesión para este módulo, solo actualizamos el QR
-    // (nueva fecha de expiración) pero mantenemos la misma sesión
     if (sesionExistente.docs.isNotEmpty) {
       final docRef = sesionExistente.docs.first.reference;
+
       await docRef.update({
         'fechaExpiracion': expiracionQR.toIso8601String(),
         'activo': true,
@@ -59,8 +53,6 @@ class AsistenciaService {
       );
     }
 
-    // Si no existe, crear sesión nueva para este módulo
-    // Primero desactivar cualquier sesión anterior de otra materia
     final sesionesAnteriores = await _db
         .collection('sesionesQR')
         .where('docenteId', isEqualTo: docenteId)
@@ -68,12 +60,13 @@ class AsistenciaService {
         .get();
 
     final batch = _db.batch();
+
     for (final doc in sesionesAnteriores.docs) {
       batch.update(doc.reference, {'activo': false});
     }
+
     await batch.commit();
 
-    // Crear la nueva sesión
     final sesion = SesionQR(
       id: '',
       materiaId: materiaId,
@@ -103,14 +96,16 @@ class AsistenciaService {
     );
   }
 
-  // Desactiva una sesión QR
+  // ─── CERRAR SESIÓN ────────────────────────────────────────
+
   Future<void> cerrarSesionQR(String sesionId) async {
     await _db.collection('sesionesQR').doc(sesionId).update({
       'activo': false,
     });
   }
 
-  // Obtiene la sesión QR activa de una materia en tiempo real
+  // ─── SESIÓN ACTIVA ────────────────────────────────────────
+
   Stream<SesionQR?> getSesionActiva(String materiaId) {
     return _db
         .collection('sesionesQR')
@@ -120,6 +115,7 @@ class AsistenciaService {
         .snapshots()
         .map((snapshot) {
       if (snapshot.docs.isEmpty) return null;
+
       return SesionQR.fromFirestore(
         snapshot.docs.first.data(),
         snapshot.docs.first.id,
@@ -129,7 +125,6 @@ class AsistenciaService {
 
   // ─── ASISTENCIAS ──────────────────────────────────────────
 
-  // Registra asistencia por QR
   Future<String?> registrarAsistenciaQR({
     required String sesionId,
     required String alumnoId,
@@ -138,7 +133,6 @@ class AsistenciaService {
     required String grupoId,
   }) async {
     try {
-      // Verificar que la sesión existe y está activa
       final sesionDoc =
           await _db.collection('sesionesQR').doc(sesionId).get();
 
@@ -150,7 +144,6 @@ class AsistenciaService {
       if (!sesion.activo) return 'Esta sesión ya fue cerrada';
       if (sesion.qrExpirado) return 'El código QR ha expirado';
 
-      // Verificar que el alumno no haya registrado ya
       final yaRegistrado = await _db
           .collection('asistencias')
           .where('alumnoId', isEqualTo: alumnoId)
@@ -163,7 +156,6 @@ class AsistenciaService {
         return 'Ya registraste tu asistencia hoy';
       }
 
-      // Registrar asistencia
       await _db.collection('asistencias').add(
             Asistencia(
               id: '',
@@ -171,6 +163,7 @@ class AsistenciaService {
               alumnoNombre: alumnoNombre,
               materiaId: materiaId,
               grupoId: grupoId,
+              sesionId: sesionId,
               fecha: DateTime.now(),
               metodo: 'qr',
               estado: 'presente',
@@ -178,13 +171,54 @@ class AsistenciaService {
             ).toFirestore(),
           );
 
-      return null; // null = éxito
+      return null;
     } catch (e) {
       return 'Error al registrar asistencia. Intenta de nuevo';
     }
   }
 
-  // Obtiene asistencias de hoy para una materia en tiempo real
+  // ─── SOLICITAR ASISTENCIA MANUAL ──────────────────────────
+
+  Future<String?> solicitarAsistenciaManual({
+    required String alumnoId,
+    required String alumnoNombre,
+    required String materiaId,
+    required String grupoId,
+  }) async {
+    try {
+      final ahora = DateTime.now();
+
+      final modulo = HorarioUtils.moduloActual();
+      final numeroModulo = modulo?.numero ?? 0;
+
+      final finModulo =
+          HorarioUtils.finModuloActual() ?? ahora.add(const Duration(minutes: 50));
+
+      await _db.collection('asistencias').add(
+            Asistencia(
+              id: '',
+              alumnoId: alumnoId,
+              alumnoNombre: alumnoNombre,
+              materiaId: materiaId,
+              grupoId: grupoId,
+              sesionId: 'manual_${materiaId}_$numeroModulo',
+              fecha: ahora,
+              metodo: 'manual',
+              estado: 'pendiente',
+              validadoPorDocente: false,
+              numeroModulo: numeroModulo,
+              finModulo: finModulo,
+            ).toFirestore(),
+          );
+
+      return null;
+    } catch (e) {
+      return 'No se pudo enviar la solicitud';
+    }
+  }
+
+  // ─── STREAMS DE ASISTENCIAS ───────────────────────────────
+
   Stream<List<Asistencia>> getAsistenciasHoy(String materiaId) {
     return _db
         .collection('asistencias')
@@ -197,7 +231,6 @@ class AsistenciaService {
             .toList());
   }
 
-  // Obtiene historial de asistencias de un alumno
   Stream<List<Asistencia>> getHistorialAlumno(
       String alumnoId, String materiaId) {
     return _db
@@ -211,7 +244,8 @@ class AsistenciaService {
             .toList());
   }
 
-  // Calcula el porcentaje de asistencia de un alumno en una materia
+  // ─── ESTADÍSTICAS ─────────────────────────────────────────
+
   Future<double> calcularPorcentaje(
       String alumnoId, String materiaId) async {
     final total = await _db
@@ -228,13 +262,13 @@ class AsistenciaService {
     return (presentes / total.docs.length) * 100;
   }
 
-  // Helper: inicio del día actual
+  // ─── HELPERS ──────────────────────────────────────────────
+
   DateTime _inicioDia() {
     final ahora = DateTime.now();
     return DateTime(ahora.year, ahora.month, ahora.day);
   }
 
-  // Obtiene una sesión QR por su ID
   Future<SesionQR?> getSesionPorId(String sesionId) async {
     try {
       final doc = await _db.collection('sesionesQR').doc(sesionId).get();
@@ -243,5 +277,45 @@ class AsistenciaService {
     } catch (e) {
       return null;
     }
+  }
+
+  // ─── ASISTENCIAS PENDIENTES ───────────────────────────────
+
+  Stream<List<Asistencia>> getAsistenciasPendientes(String docenteId) {
+    return _db
+        .collection('asistencias')
+        .where('estado', isEqualTo: 'pendiente')
+        .orderBy('fecha', descending: false)
+        .snapshots()
+        .asyncMap((snapshot) async {
+      final asistencias = snapshot.docs
+          .map((doc) => Asistencia.fromFirestore(doc.data(), doc.id))
+          .toList();
+
+      final List<Asistencia> propias = [];
+      for (final a in asistencias) {
+        final materiaDoc =
+            await _db.collection('materias').doc(a.materiaId).get();
+        if (materiaDoc.exists &&
+            materiaDoc.data()?['docenteId'] == docenteId) {
+          propias.add(a);
+        }
+      }
+      return propias;
+    });
+  }
+
+  Future<void> confirmarAsistencia(String asistenciaId) async {
+    await _db.collection('asistencias').doc(asistenciaId).update({
+      'estado': 'presente',
+      'validadoPorDocente': true,
+    });
+  }
+
+  Future<void> rechazarAsistencia(String asistenciaId) async {
+    await _db.collection('asistencias').doc(asistenciaId).update({
+      'estado': 'ausente',
+      'validadoPorDocente': true,
+    });
   }
 }
