@@ -5,7 +5,9 @@ class SesionQR {
   final String grupoId;
   final String docenteId;
   final DateTime fechaCreacion;
-  final DateTime fechaExpiracion;
+  final DateTime fechaExpiracion;     // Cuándo expira el QR actual
+  final DateTime finModulo;           // Cuándo termina el módulo/clase
+  final int numeroModulo;             // Qué módulo es (1-16)
   final bool activo;
 
   SesionQR({
@@ -16,6 +18,8 @@ class SesionQR {
     required this.docenteId,
     required this.fechaCreacion,
     required this.fechaExpiracion,
+    required this.finModulo,
+    required this.numeroModulo,
     this.activo = true,
   });
 
@@ -28,6 +32,8 @@ class SesionQR {
       docenteId: data['docenteId'] ?? '',
       fechaCreacion: DateTime.parse(data['fechaCreacion']),
       fechaExpiracion: DateTime.parse(data['fechaExpiracion']),
+      finModulo: DateTime.parse(data['finModulo']),
+      numeroModulo: data['numeroModulo'] ?? 0,
       activo: data['activo'] ?? true,
     );
   }
@@ -40,18 +46,19 @@ class SesionQR {
       'docenteId': docenteId,
       'fechaCreacion': fechaCreacion.toIso8601String(),
       'fechaExpiracion': fechaExpiracion.toIso8601String(),
+      'finModulo': finModulo.toIso8601String(),
+      'numeroModulo': numeroModulo,
       'activo': activo,
     };
   }
 
-  // El QR ya expiró
-  bool get estaExpirado => DateTime.now().isAfter(fechaExpiracion);
+  // El QR actual expiró (pero la sesión puede seguir abierta)
+  bool get qrExpirado => DateTime.now().isAfter(fechaExpiracion);
 
-  // Minutos restantes antes de expirar
-  int get minutosRestantes =>
-      fechaExpiracion.difference(DateTime.now()).inMinutes;
+  // El módulo completo terminó
+  bool get moduloTerminado => DateTime.now().isAfter(finModulo);
 
-  // Segundos restantes para el contador
+  // Segundos restantes del QR actual
   int get segundosRestantes =>
       fechaExpiracion.difference(DateTime.now()).inSeconds;
 }

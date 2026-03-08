@@ -1,32 +1,74 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/sesion_qr_model.dart';
 import '../models/asistencia_model.dart';
+import '../utils/horario_utils.dart';
 
 class AsistenciaService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   // ─── SESIONES QR ──────────────────────────────────────────
 
-  // Crea una nueva sesión QR para una materia
-  Future<SesionQR> crearSesionQR({
+  Future<SesionQR?> crearSesionQR({
     required String materiaId,
     required String materiaNombre,
     required String grupoId,
     required String docenteId,
-    int minutosExpiracion = 15,
+    int minutosQR = 10,
   }) async {
-    final ahora = DateTime.now();
-    final expiracion = ahora.add(Duration(minutes: minutosExpiracion));
+    // Detectar módulo actual por horario
+    final modulo = HorarioUtils.moduloActual();
 
-    // Primero desactiva cualquier sesión activa anterior de esta materia
-    final sesionesActivas = await _db
+    // Si estamos fuera del horario de clases
+    if (modulo == null) {
+      // En desarrollo permitimos crear QR fuera de horario para pruebas
+      // En producción aquí iría: return null;
+    }
+
+    final ahora = DateTime.now();
+    final expiracionQR = ahora.add(Duration(minutes: minutosQR));
+
+    // Fin del módulo actual (o 50 minutos si estamos fuera de horario)
+    final finModulo =
+        HorarioUtils.finModuloActual() ?? ahora.add(const Duration(minutes: 50));
+
+    final numeroModulo = modulo?.numero ?? 0;
+
+    // Buscar si ya existe una sesión activa para este módulo y materia
+    final sesionExistente = await _db
         .collection('sesionesQR')
         .where('materiaId', isEqualTo: materiaId)
+        .where('numeroModulo', isEqualTo: numeroModulo)
+        .where('activo', isEqualTo: true)
+        .get();
+
+    // Si ya existe una sesión para este módulo, solo actualizamos el QR
+    // (nueva fecha de expiración) pero mantenemos la misma sesión
+    if (sesionExistente.docs.isNotEmpty) {
+      final docRef = sesionExistente.docs.first.reference;
+      await docRef.update({
+        'fechaExpiracion': expiracionQR.toIso8601String(),
+        'activo': true,
+      });
+
+      return SesionQR.fromFirestore(
+        {
+          ...sesionExistente.docs.first.data(),
+          'fechaExpiracion': expiracionQR.toIso8601String()
+        },
+        sesionExistente.docs.first.id,
+      );
+    }
+
+    // Si no existe, crear sesión nueva para este módulo
+    // Primero desactivar cualquier sesión anterior de otra materia
+    final sesionesAnteriores = await _db
+        .collection('sesionesQR')
+        .where('docenteId', isEqualTo: docenteId)
         .where('activo', isEqualTo: true)
         .get();
 
     final batch = _db.batch();
-    for (final doc in sesionesActivas.docs) {
+    for (final doc in sesionesAnteriores.docs) {
       batch.update(doc.reference, {'activo': false});
     }
     await batch.commit();
@@ -39,7 +81,9 @@ class AsistenciaService {
       grupoId: grupoId,
       docenteId: docenteId,
       fechaCreacion: ahora,
-      fechaExpiracion: expiracion,
+      fechaExpiracion: expiracionQR,
+      finModulo: finModulo,
+      numeroModulo: numeroModulo,
       activo: true,
     );
 
@@ -52,7 +96,9 @@ class AsistenciaService {
       grupoId: grupoId,
       docenteId: docenteId,
       fechaCreacion: ahora,
-      fechaExpiracion: expiracion,
+      fechaExpiracion: expiracionQR,
+      finModulo: finModulo,
+      numeroModulo: numeroModulo,
       activo: true,
     );
   }
@@ -102,7 +148,7 @@ class AsistenciaService {
           SesionQR.fromFirestore(sesionDoc.data()!, sesionDoc.id);
 
       if (!sesion.activo) return 'Esta sesión ya fue cerrada';
-      if (sesion.estaExpirado) return 'El código QR ha expirado';
+      if (sesion.qrExpirado) return 'El código QR ha expirado';
 
       // Verificar que el alumno no haya registrado ya
       final yaRegistrado = await _db
@@ -176,9 +222,8 @@ class AsistenciaService {
 
     if (total.docs.isEmpty) return 0.0;
 
-    final presentes = total.docs
-        .where((doc) => doc.data()['estado'] == 'presente')
-        .length;
+    final presentes =
+        total.docs.where((doc) => doc.data()['estado'] == 'presente').length;
 
     return (presentes / total.docs.length) * 100;
   }
@@ -187,5 +232,16 @@ class AsistenciaService {
   DateTime _inicioDia() {
     final ahora = DateTime.now();
     return DateTime(ahora.year, ahora.month, ahora.day);
+  }
+
+  // Obtiene una sesión QR por su ID
+  Future<SesionQR?> getSesionPorId(String sesionId) async {
+    try {
+      final doc = await _db.collection('sesionesQR').doc(sesionId).get();
+      if (!doc.exists) return null;
+      return SesionQR.fromFirestore(doc.data()!, doc.id);
+    } catch (e) {
+      return null;
+    }
   }
 }

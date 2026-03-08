@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -48,8 +49,21 @@ class _QRScreenState extends State<QRScreen> {
       materiaNombre: widget.materia.nombre,
       grupoId: widget.grupo.id,
       docenteId: authService.currentUser!.uid,
-      minutosExpiracion: 15,
+      minutosQR: 10,
     );
+
+    if (sesion == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Fuera del horario de clases'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+      setState(() => _generando = false);
+      return;
+    }
 
     setState(() {
       _sesionActual = sesion;
@@ -57,7 +71,6 @@ class _QRScreenState extends State<QRScreen> {
       _generando = false;
     });
 
-    // Iniciar contador regresivo
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) {
@@ -66,9 +79,7 @@ class _QRScreenState extends State<QRScreen> {
       }
       setState(() {
         _segundosRestantes = _sesionActual?.segundosRestantes ?? 0;
-        if (_segundosRestantes <= 0) {
-          timer.cancel();
-        }
+        if (_segundosRestantes <= 0) timer.cancel();
       });
     });
   }
@@ -134,7 +145,6 @@ class _QRScreenState extends State<QRScreen> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            // ─── Panel del QR ───────────────────────────
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(24),
@@ -164,9 +174,32 @@ class _QRScreenState extends State<QRScreen> {
                     _fechaHoy(),
                     style: const TextStyle(color: Colors.grey, fontSize: 13),
                   ),
+
+                  // Mostrar módulo detectado
+                  if (_sesionActual != null) ...[
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1565C0).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        _sesionActual!.numeroModulo == 0
+                            ? 'Modo de prueba'
+                            : 'Módulo ${_sesionActual!.numeroModulo}',
+                        style: const TextStyle(
+                          color: Color(0xFF1565C0),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+
                   const SizedBox(height: 24),
 
-                  // QR o estado vacío
                   if (_sesionActual == null) ...[
                     Container(
                       width: 200,
@@ -219,7 +252,6 @@ class _QRScreenState extends State<QRScreen> {
                       ),
                     ),
                   ] else ...[
-                    // QR activo
                     QrImageView(
                       data: _sesionActual!.id,
                       version: QrVersions.auto,
@@ -228,7 +260,6 @@ class _QRScreenState extends State<QRScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Contador regresivo
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 8),
@@ -273,7 +304,6 @@ class _QRScreenState extends State<QRScreen> {
 
             const SizedBox(height: 16),
 
-            // ─── Botones de acción ───────────────────────
             Row(
               children: [
                 Expanded(
@@ -325,7 +355,6 @@ class _QRScreenState extends State<QRScreen> {
 
             const SizedBox(height: 20),
 
-            // ─── Lista de asistencias en tiempo real ────
             _AsistenciasHoy(
               materiaId: widget.materia.id,
               asistenciaService: _asistenciaService,
@@ -339,14 +368,13 @@ class _QRScreenState extends State<QRScreen> {
   String _fechaHoy() {
     final ahora = DateTime.now();
     const meses = [
-      'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-      'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+      'enero','febrero','marzo','abril','mayo','junio',
+      'julio','agosto','septiembre','octubre','noviembre','diciembre'
     ];
     return '${ahora.day} de ${meses[ahora.month - 1]} de ${ahora.year}';
   }
 }
 
-// Widget que muestra las asistencias de hoy en tiempo real
 class _AsistenciasHoy extends StatelessWidget {
   final String materiaId;
   final AsistenciaService asistenciaService;

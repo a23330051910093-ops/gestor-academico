@@ -32,6 +32,9 @@ dependencies:
   # Estado
   provider: ^6.1.2
 
+  # Escanear QR
+  mobile_scanner: ^5.2.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

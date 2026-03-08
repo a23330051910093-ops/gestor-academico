@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
+import 'escanear_qr_screen.dart';
 
 class AlumnoHome extends StatelessWidget {
   const AlumnoHome({super.key});
@@ -83,17 +84,15 @@ class AlumnoHome extends StatelessWidget {
                     ? Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Columna izquierda: tarjeta de bienvenida
                           Expanded(
                             flex: 2,
                             child: _buildWelcomeCard(
                                 authService, esPadre, isLandscape),
                           ),
                           const SizedBox(width: 16),
-                          // Columna derecha: tarjetas de módulos
                           Expanded(
                             flex: 3,
-                            child: _buildModuleCards(esPadre),
+                            child: _buildModuleCards(context, esPadre),
                           ),
                         ],
                       )
@@ -111,7 +110,7 @@ class AlumnoHome extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          _buildModuleCards(esPadre),
+                          _buildModuleCards(context, esPadre),
                           const SizedBox(height: 16),
                           _buildReadOnlyBadge(),
                         ],
@@ -123,8 +122,6 @@ class AlumnoHome extends StatelessWidget {
       ),
     );
   }
-
-  // Métodos extraídos para organizar la UI
 
   Widget _buildWelcomeCard(
       AuthService authService, bool esPadre, bool isLandscape) {
@@ -166,7 +163,7 @@ class AlumnoHome extends StatelessWidget {
     );
   }
 
-  Widget _buildModuleCards(bool esPadre) {
+  Widget _buildModuleCards(BuildContext context, bool esPadre) {
     return Column(
       children: [
         _InfoCard(
@@ -184,11 +181,19 @@ class AlumnoHome extends StatelessWidget {
         ),
         if (!esPadre) ...[
           const SizedBox(height: 12),
-          _InfoCard(
-            icon: Icons.qr_code_scanner_rounded,
-            color: const Color(0xFFE65100),
-            title: 'Registrar Asistencia',
-            subtitle: 'Escanea el código QR que muestre tu maestro',
+          GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const EscanearQRScreen(),
+              ),
+            ),
+            child: _InfoCard(
+              icon: Icons.qr_code_scanner_rounded,
+              color: const Color(0xFFE65100),
+              title: 'Registrar Asistencia',
+              subtitle: 'Escanea el código QR que muestre tu maestro',
+            ),
           ),
         ],
         const SizedBox(height: 12),

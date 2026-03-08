@@ -135,4 +135,20 @@ class GestionService {
       'duplicados': duplicados,
     };
   }
+
+  // Obtiene un alumno por su UID de Firebase Auth
+  Future<Alumno?> getAlumnoPorUid(String uid) async {
+    try {
+      final query = await _db
+          .collection('alumnos')
+          .where('uid', isEqualTo: uid)
+          .limit(1)
+          .get();
+
+      if (query.docs.isEmpty) return null;
+      return Alumno.fromFirestore(query.docs.first.data(), query.docs.first.id);
+    } catch (e) {
+      return null;
+    }
+  }
 }
