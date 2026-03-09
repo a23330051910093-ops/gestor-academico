@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
 import 'gestion/semestres_screen.dart';
 import 'asistencia/asistencia_home.dart';
+import 'evaluacion/rubricas_screen.dart';
 
 class DocenteHome extends StatelessWidget {
   const DocenteHome({super.key});
@@ -103,8 +104,7 @@ class DocenteHome extends StatelessWidget {
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => const SemestresScreen(
-                              ),
+                              builder: (_) => const SemestresScreen(),
                             ),
                           ),
                         ),
@@ -116,8 +116,7 @@ class DocenteHome extends StatelessWidget {
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => const AsistenciaHome(
-                              ),
+                              builder: (_) => const AsistenciaHome(),
                             ),
                           ),
                         ),
@@ -129,9 +128,7 @@ class DocenteHome extends StatelessWidget {
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => const PlaceholderScreen(
-                                title: 'Evaluación con IA',
-                              ),
+                              builder: (_) => const RubricasScreen(),
                             ),
                           ),
                         ),
