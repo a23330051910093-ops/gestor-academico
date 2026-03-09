@@ -9,6 +9,17 @@ class RubricaService {
     await _db.collection('rubricas').add(rubrica.toFirestore());
   }
 
+  // Obtiene una rúbrica por su ID
+  Future<Rubrica?> getRubricaPorId(String rubricaId) async {
+    try {
+      final doc = await _db.collection('rubricas').doc(rubricaId).get();
+      if (!doc.exists) return null;
+      return Rubrica.fromFirestore(doc.data()!, doc.id);
+    } catch (e) {
+      return null;
+    }
+  }
+
   // Obtener rúbricas de una materia
   Stream<List<Rubrica>> getRubricas(String materiaId) {
     return _db

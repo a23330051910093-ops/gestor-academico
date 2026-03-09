@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
 import 'escanear_qr_screen.dart';
 import 'mi_asistencia_screen.dart';
+import 'mis_calificaciones_screen.dart';
 
 class AlumnoHome extends StatelessWidget {
   const AlumnoHome({super.key});
@@ -193,11 +194,25 @@ class AlumnoHome extends StatelessWidget {
 
         const SizedBox(height: 12),
 
-        _InfoCard(
-          icon: Icons.grade_rounded,
-          color: const Color(0xFF6A1B9A),
-          title: 'Mis Calificaciones',
-          subtitle: 'Revisa tus calificaciones y retroalimentación',
+        GestureDetector(
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => MisCalificacionesScreen(
+                alumnoIdOverride: esPadre
+                    ? authService.alumnoIdHijo
+                    : null,
+              ),
+            ),
+          ),
+          child: _InfoCard(
+            icon: Icons.grade_rounded,
+            color: const Color(0xFF6A1B9A),
+            title: esPadre ? 'Calificaciones de mi hijo' : 'Mis Calificaciones',
+            subtitle: esPadre
+                ? 'Consulta las calificaciones de tu hijo'
+                : 'Revisa tus calificaciones y retroalimentación',
+          ),
         ),
 
         if (!esPadre) ...[

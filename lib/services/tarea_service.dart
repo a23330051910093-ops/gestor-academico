@@ -59,6 +59,31 @@ class TareaService {
     }
   }
 
+  // Obtiene las entregas calificadas de un alumno en una materia
+  Stream<List<Entrega>> getEntregasAlumno(
+      String alumnoId, String materiaId) {
+    return _db
+        .collection('entregas')
+        .where('alumnoId', isEqualTo: alumnoId)
+        .where('materiaId', isEqualTo: materiaId)
+        .where('estado', isEqualTo: 'calificado')
+        .orderBy('fechaEntrega', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => Entrega.fromFirestore(doc.data(), doc.id))
+            .toList());
+  }
+
+  Future<Tarea?> getTareaPorId(String tareaId) async {
+    try {
+      final doc = await _db.collection('tareas').doc(tareaId).get();
+      if (!doc.exists) return null;
+      return Tarea.fromFirestore(doc.data()!, doc.id);
+    } catch (e) {
+      return null;
+    }
+  }
+
   // ─── ENTREGAS ─────────────────────────────────────────────
 
   Future<void> guardarEntrega(Entrega entrega) async {
