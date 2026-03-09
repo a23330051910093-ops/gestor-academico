@@ -8,6 +8,7 @@ import '../../../models/rubrica_model.dart';
 import '../../../models/materia_model.dart';
 import '../../../models/grupo_model.dart';
 import '../../../models/semestre_model.dart';
+import 'tareas_screen.dart';
 
 class RubricasScreen extends StatelessWidget {
   const RubricasScreen({super.key});
@@ -34,8 +35,10 @@ class RubricasScreen extends StatelessWidget {
           final semestres = snapshot.data ?? [];
           if (semestres.isEmpty) {
             return const Center(
-              child: Text('No tienes semestres registrados',
-                  style: TextStyle(color: Colors.grey)),
+              child: Text(
+                'No tienes semestres registrados',
+                style: TextStyle(color: Colors.grey),
+              ),
             );
           }
 
@@ -83,8 +86,10 @@ class _SemestreExpansion extends StatelessWidget {
               if (grupos.isEmpty) {
                 return const Padding(
                   padding: EdgeInsets.all(16),
-                  child: Text('Sin grupos',
-                      style: TextStyle(color: Colors.grey)),
+                  child: Text(
+                    'Sin grupos',
+                    style: TextStyle(color: Colors.grey),
+                  ),
                 );
               }
               return Column(
@@ -128,13 +133,18 @@ class _GrupoExpansion extends StatelessWidget {
               if (materias.isEmpty) {
                 return const Padding(
                   padding: EdgeInsets.all(16),
-                  child: Text('Sin materias',
-                      style: TextStyle(color: Colors.grey)),
+                  child: Text(
+                    'Sin materias',
+                    style: TextStyle(color: Colors.grey),
+                  ),
                 );
               }
               return Column(
                 children: materias
-                    .map((m) => _MateriaRubricas(materia: m))
+                    .map((m) => _MateriaRubricas(
+                          materia: m,
+                          grupo: grupo,
+                        ))
                     .toList(),
               );
             },
@@ -147,8 +157,12 @@ class _GrupoExpansion extends StatelessWidget {
 
 class _MateriaRubricas extends StatelessWidget {
   final Materia materia;
+  final Grupo grupo;
 
-  const _MateriaRubricas({required this.materia});
+  const _MateriaRubricas({
+    required this.materia,
+    required this.grupo,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -163,6 +177,20 @@ class _MateriaRubricas extends StatelessWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            IconButton(
+              icon: const Icon(Icons.assignment_rounded,
+                  color: Color(0xFF6A1B9A)),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => TareasScreen(
+                    materia: materia,
+                    grupo: grupo,
+                  ),
+                ),
+              ),
+              tooltip: 'Tareas',
+            ),
             IconButton(
               icon: const Icon(Icons.add_circle_outline,
                   color: Color(0xFF1565C0)),
@@ -181,8 +209,10 @@ class _MateriaRubricas extends StatelessWidget {
               if (rubricas.isEmpty) {
                 return const Padding(
                   padding: EdgeInsets.all(16),
-                  child: Text('Sin rúbricas. Toca + para crear una.',
-                      style: TextStyle(color: Colors.grey, fontSize: 13)),
+                  child: Text(
+                    'Sin rúbricas. Toca + para crear una.',
+                    style: TextStyle(color: Colors.grey, fontSize: 13),
+                  ),
                 );
               }
               return Column(
@@ -245,10 +275,9 @@ class _MateriaRubricas extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-
-                    // Criterios
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           'Criterios (${totalPeso}% de 100%)',
@@ -262,42 +291,46 @@ class _MateriaRubricas extends StatelessWidget {
                           ),
                         ),
                         TextButton.icon(
-                          onPressed: () =>
-                              _agregarCriterio(context, setState, criterios),
+                          onPressed: () => _agregarCriterio(
+                              context, setState, criterios),
                           icon: const Icon(Icons.add, size: 16),
                           label: const Text('Agregar'),
                         ),
                       ],
                     ),
-
                     if (criterios.isEmpty)
                       const Text(
                         'Agrega al menos un criterio',
-                        style:
-                            TextStyle(color: Colors.grey, fontSize: 12),
+                        style: TextStyle(
+                            color: Colors.grey, fontSize: 12),
                       ),
-
                     ...criterios.asMap().entries.map((entry) {
                       final i = entry.key;
                       final c = entry.value;
                       return Card(
-                        margin: const EdgeInsets.only(bottom: 6),
+                        margin:
+                            const EdgeInsets.only(bottom: 6),
                         child: ListTile(
                           dense: true,
                           title: Text(c['nombre'],
-                              style: const TextStyle(fontSize: 13)),
+                              style:
+                                  const TextStyle(fontSize: 13)),
                           subtitle: Text(c['descripcion'],
-                              style: const TextStyle(fontSize: 11)),
+                              style:
+                                  const TextStyle(fontSize: 11)),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 2),
+                                padding:
+                                    const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 2),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFF1565C0)
                                       .withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(4),
+                                  borderRadius:
+                                      BorderRadius.circular(4),
                                 ),
                                 child: Text(
                                   '${c['peso']}%',
@@ -309,10 +342,12 @@ class _MateriaRubricas extends StatelessWidget {
                                 ),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.delete_outline,
-                                    size: 18, color: Colors.red),
-                                onPressed: () => setState(
-                                    () => criterios.removeAt(i)),
+                                icon: const Icon(
+                                    Icons.delete_outline,
+                                    size: 18,
+                                    color: Colors.red),
+                                onPressed: () => setState(() =>
+                                    criterios.removeAt(i)),
                               ),
                             ],
                           ),
@@ -338,6 +373,7 @@ class _MateriaRubricas extends StatelessWidget {
                     : () async {
                         setState(() => isLoading = true);
                         final uuid = const Uuid();
+
                         final rubrica = Rubrica(
                           id: '',
                           nombre: nombreController.text.trim(),
@@ -350,17 +386,24 @@ class _MateriaRubricas extends StatelessWidget {
                               .map((c) => CriterioRubrica(
                                     id: uuid.v4(),
                                     nombre: c['nombre'],
-                                    descripcion: c['descripcion'],
+                                    descripcion:
+                                        c['descripcion'],
                                     peso: c['peso'],
                                   ))
                               .toList(),
                           fechaCreacion: DateTime.now(),
                         );
-                        await rubricaService.crearRubrica(rubrica);
-                        if (context.mounted) Navigator.pop(context);
+
+                        await rubricaService.crearRubrica(
+                            rubrica);
+
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                        }
                       },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1565C0),
+                  backgroundColor:
+                      const Color(0xFF1565C0),
                   foregroundColor: Colors.white,
                 ),
                 child: isLoading
@@ -417,7 +460,8 @@ class _MateriaRubricas extends StatelessWidget {
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
                 labelText: 'Peso (%)',
-                helperText: 'Todos los criterios deben sumar 100%',
+                helperText:
+                    'Todos los criterios deben sumar 100%',
                 border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8)),
               ),
@@ -433,20 +477,26 @@ class _MateriaRubricas extends StatelessWidget {
             onPressed: () {
               if (nombreController.text.isEmpty ||
                   pesoController.text.isEmpty) return;
-              final peso = int.tryParse(pesoController.text) ?? 0;
+
+              final peso =
+                  int.tryParse(pesoController.text) ?? 0;
+
               if (peso <= 0 || peso > 100) return;
 
               setState(() {
                 criterios.add({
                   'nombre': nombreController.text.trim(),
-                  'descripcion': descripcionController.text.trim(),
+                  'descripcion':
+                      descripcionController.text.trim(),
                   'peso': peso,
                 });
               });
+
               Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF1565C0),
+              backgroundColor:
+                  const Color(0xFF1565C0),
               foregroundColor: Colors.white,
             ),
             child: const Text('Agregar'),
@@ -470,13 +520,16 @@ class _RubricaCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-      shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8)),
       child: ExpansionTile(
         leading: const Icon(Icons.checklist_rounded,
             color: Color(0xFF6A1B9A), size: 20),
-        title: Text(rubrica.nombre,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+        title: Text(
+          rubrica.nombre,
+          style: const TextStyle(
+              fontSize: 13, fontWeight: FontWeight.w600),
+        ),
         subtitle: Text(
           '${rubrica.criterios.length} criterios',
           style: const TextStyle(fontSize: 11),
@@ -493,33 +546,40 @@ class _RubricaCard extends StatelessWidget {
           ],
         ),
         children: rubrica.criterios
-            .map((c) => ListTile(
-                  dense: true,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 24),
-                  leading: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF6A1B9A).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      '${c.peso}%',
-                      style: const TextStyle(
-                        color: Color(0xFF6A1B9A),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
+            .map(
+              (c) => ListTile(
+                dense: true,
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 24),
+                leading: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF6A1B9A)
+                        .withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    '${c.peso}%',
+                    style: const TextStyle(
+                      color: Color(0xFF6A1B9A),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
                     ),
                   ),
-                  title: Text(c.nombre,
-                      style: const TextStyle(fontSize: 13)),
-                  subtitle: c.descripcion.isNotEmpty
-                      ? Text(c.descripcion,
-                          style: const TextStyle(fontSize: 11))
-                      : null,
-                ))
+                ),
+                title: Text(
+                  c.nombre,
+                  style: const TextStyle(fontSize: 13),
+                ),
+                subtitle: c.descripcion.isNotEmpty
+                    ? Text(
+                        c.descripcion,
+                        style: const TextStyle(fontSize: 11),
+                      )
+                    : null,
+              ),
+            )
             .toList(),
       ),
     );
@@ -548,6 +608,7 @@ class _RubricaCard extends StatelessWidget {
         ],
       ),
     );
+
     if (confirmar == true) {
       await rubricaService.eliminarRubrica(rubrica.id);
     }
