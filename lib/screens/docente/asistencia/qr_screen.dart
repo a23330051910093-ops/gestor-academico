@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -9,6 +8,7 @@ import '../../../models/materia_model.dart';
 import '../../../models/grupo_model.dart';
 import '../../../models/sesion_qr_model.dart';
 import '../../../models/asistencia_model.dart';
+import 'reporte_asistencia_screen.dart';
 
 class QRScreen extends StatefulWidget {
   final Materia materia;
@@ -38,7 +38,6 @@ class _QRScreenState extends State<QRScreen> {
     super.dispose();
   }
 
-  // Genera un nuevo QR
   Future<void> _generarQR() async {
     setState(() => _generando = true);
 
@@ -84,7 +83,6 @@ class _QRScreenState extends State<QRScreen> {
     });
   }
 
-  // Cierra la sesión QR activa
   Future<void> _cerrarSesion() async {
     if (_sesionActual == null) return;
 
@@ -121,7 +119,6 @@ class _QRScreenState extends State<QRScreen> {
     }
   }
 
-  // Formatea segundos a MM:SS
   String _formatearTiempo(int segundos) {
     if (segundos <= 0) return '00:00';
     final minutos = segundos ~/ 60;
@@ -140,6 +137,21 @@ class _QRScreenState extends State<QRScreen> {
         title: Text(widget.materia.nombre),
         backgroundColor: const Color(0xFF1565C0),
         foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.assessment_rounded),
+            tooltip: 'Ver porcentajes',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ReporteAsistenciaScreen(
+                  materia: widget.materia,
+                  grupo: widget.grupo,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -175,7 +187,6 @@ class _QRScreenState extends State<QRScreen> {
                     style: const TextStyle(color: Colors.grey, fontSize: 13),
                   ),
 
-                  // Mostrar módulo detectado
                   if (_sesionActual != null) ...[
                     const SizedBox(height: 4),
                     Container(

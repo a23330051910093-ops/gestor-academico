@@ -279,6 +279,35 @@ class AsistenciaService {
     }
   }
 
+
+  // Calcula porcentajes de todos los alumnos de un grupo en una materia
+  Future<Map<String, double>> calcularPorcentajesGrupo(
+      String materiaId, List<String> alumnoIds) async {
+    final Map<String, double> porcentajes = {};
+
+    for (final alumnoId in alumnoIds) {
+      final porcentaje = await calcularPorcentaje(alumnoId, materiaId);
+      porcentajes[alumnoId] = porcentaje;
+    }
+
+    return porcentajes;
+  }
+
+  // Obtiene asistencias de un alumno agrupadas por fecha
+  Stream<List<Asistencia>> getAsistenciasAlumno(
+      String alumnoId, String materiaId) {
+    return _db
+        .collection('asistencias')
+        .where('alumnoId', isEqualTo: alumnoId)
+        .where('materiaId', isEqualTo: materiaId)
+        .orderBy('fecha', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => Asistencia.fromFirestore(doc.data(), doc.id))
+            .toList());
+  }
+  
+
   // ─── ASISTENCIAS PENDIENTES ───────────────────────────────
 
   Stream<List<Asistencia>> getAsistenciasPendientes(String docenteId) {
@@ -319,3 +348,4 @@ class AsistenciaService {
     });
   }
 }
+

@@ -9,6 +9,7 @@ class AuthService extends ChangeNotifier {
   User? currentUser;
   String? userRole;
   String? userName;
+  String? alumnoIdHijo; // ← agregar junto a los otros campos
   bool isLoading = true;
 
   AuthService() {
@@ -58,6 +59,7 @@ class AuthService extends ChangeNotifier {
       if (queryTutor.docs.isNotEmpty) {
         userRole = 'padre';
         userName = 'Padre/Tutor';
+        alumnoIdHijo = queryTutor.docs.first.id;
         return;
       }
 

@@ -147,6 +147,28 @@ class GestionService {
         .toList();
   }
 
+  // Obtiene alumnos de un grupo como Future (no Stream)
+  Future<List<Alumno>> getAlumnosPorGrupoFuture(String grupoId) async {
+    final snapshot = await _db
+        .collection('alumnos')
+        .where('grupoIds', arrayContains: grupoId)
+        .orderBy('nombre')
+        .get();
+    return snapshot.docs
+        .map((doc) => Alumno.fromFirestore(doc.data(), doc.id))
+        .toList();
+  }  
+
+  Future<Alumno?> getAlumnoPorId(String alumnoId) async {
+    try {
+      final doc = await _db.collection('alumnos').doc(alumnoId).get();
+      if (!doc.exists) return null;
+      return Alumno.fromFirestore(doc.data()!, doc.id);
+    } catch (e) {
+      return null;
+    }
+  }
+
   // Obtiene un alumno por su UID de Firebase Auth
   Future<Alumno?> getAlumnoPorUid(String uid) async {
     try {

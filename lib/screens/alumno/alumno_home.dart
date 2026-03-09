@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
 import 'escanear_qr_screen.dart';
+import 'mi_asistencia_screen.dart';
 
 class AlumnoHome extends StatelessWidget {
   const AlumnoHome({super.key});
@@ -92,7 +93,8 @@ class AlumnoHome extends StatelessWidget {
                           const SizedBox(width: 16),
                           Expanded(
                             flex: 3,
-                            child: _buildModuleCards(context, esPadre),
+                            child: _buildModuleCards(
+                                context, esPadre, authService),
                           ),
                         ],
                       )
@@ -110,7 +112,7 @@ class AlumnoHome extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          _buildModuleCards(context, esPadre),
+                          _buildModuleCards(context, esPadre, authService),
                           const SizedBox(height: 16),
                           _buildReadOnlyBadge(),
                         ],
@@ -163,22 +165,41 @@ class AlumnoHome extends StatelessWidget {
     );
   }
 
-  Widget _buildModuleCards(BuildContext context, bool esPadre) {
+  Widget _buildModuleCards(
+      BuildContext context, bool esPadre, AuthService authService) {
     return Column(
       children: [
-        _InfoCard(
-          icon: Icons.fact_check_rounded,
-          color: const Color(0xFF2E7D32),
-          title: 'Mi Asistencia',
-          subtitle: 'Consulta tu historial de asistencias por materia',
+
+        GestureDetector(
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => MiAsistenciaScreen(
+                alumnoIdOverride: esPadre
+                    ? authService.alumnoIdHijo
+                    : null,
+              ),
+            ),
+          ),
+          child: _InfoCard(
+            icon: Icons.fact_check_rounded,
+            color: const Color(0xFF2E7D32),
+            title: esPadre ? 'Asistencia de mi hijo' : 'Mi Asistencia',
+            subtitle: esPadre
+                ? 'Consulta el historial de asistencias de tu hijo'
+                : 'Consulta tu historial de asistencias por materia',
+          ),
         ),
+
         const SizedBox(height: 12),
+
         _InfoCard(
           icon: Icons.grade_rounded,
           color: const Color(0xFF6A1B9A),
           title: 'Mis Calificaciones',
           subtitle: 'Revisa tus calificaciones y retroalimentación',
         ),
+
         if (!esPadre) ...[
           const SizedBox(height: 12),
           GestureDetector(
@@ -196,6 +217,7 @@ class AlumnoHome extends StatelessWidget {
             ),
           ),
         ],
+
         const SizedBox(height: 12),
         _buildReadOnlyBadge(),
       ],
